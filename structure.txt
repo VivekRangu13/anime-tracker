@@ -1,0 +1,6 @@
+Folder PATH listing for volume Windows-SSD
+Volume serial number is 80B8-D5F1
+C:\USERS\RANGU VIVEK\DOCUMENTS\REACT LEARNING\ANIME-TRACKER\SRC
++---assets
++---components
++---pages
