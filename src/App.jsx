@@ -8,22 +8,27 @@ import SharedWatchlist from './pages/SharedWatchlist';
 import AdminPanel from './pages/AdminPanel';
 import Navbar from './components/Navbar';
 import ThemeProvider from './context/ThemeContext';
-import Home from './pages/Home.jsx';
+import Home from './pages/Home';
+import { ErrorBoundary } from 'react-error-boundary';
+import AdminPolls from './pages/AdminPolls';
+import Recommendations from './components/Recommendations';
 
 function App() {
   return (
     <ThemeProvider>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<h2 style={{ padding: '20px' }}>🎌 Welcome to Anime Tracker</h2>} />
-        <Route path="/watchlist" element={<WatchlistPage />} />
+      <ErrorBoundary fallback={<div>⚠️ Something went wrong!</div>}>  <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/watchlist" element={<WatchlistPage />} />
         <Route path="/show/:id" element={<ShowDetails />} />
+        <Route path="/recommendations" element={<Recommendations />} />
         <Route path="/shared/:uid" element={<SharedWatchlist />} />
+        <Route path="/adminpolls" element={<AdminPolls />} />
         <Route path="/clubs" element={<ClubPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<AdminPanel />} />
       </Routes>
+      </ErrorBoundary>    
     </ThemeProvider>
   );
 }

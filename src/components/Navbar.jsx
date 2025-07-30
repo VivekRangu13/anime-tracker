@@ -13,8 +13,11 @@ export default function Navbar() {
     }}>
       <div style={{ display: 'flex', gap: '15px' }}>
         <Link to="/">🏠 Home</Link>
+        <Link to="/recommendations">🎯 Recommendations</Link>
         <Link to="/watchlist">📺 Watchlist</Link>
         <Link to="/dashboard">📊 Dashboard</Link>
+
+        <Link to="/adminpolls">📢 Admin Polls</Link>
         <Link to="/clubs">👥 Clubs</Link>
         <Link to="/admin">🛡️ Admin</Link>
       </div>

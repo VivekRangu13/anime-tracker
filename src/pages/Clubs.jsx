@@ -1,116 +1,64 @@
-// src/pages/Clubs.jsx
-import React, { useEffect, useState } from 'react';
-import { db, auth } from '../firebase';
-import {
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-  arrayUnion,
-  onSnapshot,
-  addDoc,
-  query,
-  where
-} from 'firebase/firestore';
+import React, { useState } from "react";
 
-export default function Clubs() {
-  const [clubs, setClubs] = useState([]);
-  const [selectedClub, setSelectedClub] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [message, setMessage] = useState('');
-  const [isSpoiler, setIsSpoiler] = useState(false);
-  const user = auth.currentUser;
+const initialAnimeClubs = [
+  { id: 1, name: "Naruto Fans", description: "For fans of Naruto series", likes: 0, joined: false },
+  { id: 2, name: "One Piece Explorers", description: "Join the adventure with One Piece!", likes: 0, joined: false },
+  { id: 3, name: "Attack on Titan Squad", description: "Discuss the latest AoT episodes and theories.", likes: 0, joined: false },
+  { id: 4, name: "My Hero Academia Heroes", description: "Talk about heroes and quirks.", likes: 0, joined: false },
+];
 
-  // Load all clubs
-  useEffect(() => {
-    const fetchClubs = async () => {
-      const snapshot = await getDocs(collection(db, 'clubs'));
-      setClubs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    };
-    fetchClubs();
-  }, []);
+export default function AnimeClubs() {
+  const [clubs, setClubs] = useState(initialAnimeClubs);
 
-  // Join club
-  const joinClub = async (clubId) => {
-    const clubRef = doc(db, 'clubs', clubId);
-    await updateDoc(clubRef, {
-      members: arrayUnion(user.uid)
-    });
-    setSelectedClub(clubId);
+  // Toggle join status for a club
+  const toggleJoin = (id) => {
+    setClubs((prevClubs) =>
+      prevClubs.map((club) =>
+        club.id === id ? { ...club, joined: !club.joined } : club
+      )
+    );
   };
 
-  // Load posts for selected club
-  useEffect(() => {
-    if (!selectedClub) return;
-    const q = query(collection(db, 'clubs', selectedClub, 'posts'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setPosts(snapshot.docs.map(doc => doc.data()));
-    });
-    return () => unsub();
-  }, [selectedClub]);
+  // Increase like count for a club
+  const likeClub = (id) => {
+    setClubs((prevClubs) =>
+      prevClubs.map((club) =>
+        club.id === id ? { ...club, likes: club.likes + 1 } : club
+      )
+    );
+  };
 
-  // Add post with spoiler option
-  const sendPost = async () => {
-    if (!message) return;
-    const postsRef = collection(db, 'clubs', selectedClub, 'posts');
-    await addDoc(postsRef, {
-      message,
-      isSpoiler,
-      uid: user.uid,
-      timestamp: new Date()
-    });
-    setMessage('');
-    setIsSpoiler(false);
+  // Share club (simple alert for demo)
+  const shareClub = (name) => {
+    alert(`Share this club with friends: "${name}"`);
   };
 
   return (
-    <div className="clubs-page">
+    <div>
       <h2>Anime Clubs</h2>
-
-      <div className="club-list">
-        {clubs.map(club => (
-          <div key={club.id} className="club-box">
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {clubs.map((club) => (
+          <li
+            key={club.id}
+            style={{
+              border: "1px solid #ccc",
+              padding: "12px",
+              marginBottom: "10px",
+              borderRadius: "6px",
+              backgroundColor: club.joined ? "#e0ffe0" : "white",
+            }}
+          >
             <h3>{club.name}</h3>
-            <button onClick={() => joinClub(club.id)}>Join</button>
-          </div>
+            <p>{club.description}</p>
+            <p>Likes: {club.likes}</p>
+            <button onClick={() => toggleJoin(club.id)}>
+              {club.joined ? "Leave Club" : "Join Club"}
+            </button>{" "}
+            <button onClick={() => likeClub(club.id)}>Like Club</button>{" "}
+            <button onClick={() => shareClub(club.name)}>Share Club</button>
+          </li>
         ))}
-      </div>
-
-      {selectedClub && (
-        <div className="club-chat">
-          <h3>Club Chat</h3>
-          <div className="messages">
-            {posts.map((post, idx) => (
-              <div key={idx}>
-                <strong>{post.uid}</strong>:
-                {post.isSpoiler ? (
-                  <details>
-                    <summary>⚠️ Spoiler — Click to Reveal</summary>
-                    <p>{post.message}</p>
-                  </details>
-                ) : (
-                  <p>{post.message}</p>
-                )}
-              </div>
-            ))}
-          </div>
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message"
-          />
-          <label>
-            <input
-              type="checkbox"
-              checked={isSpoiler}
-              onChange={() => setIsSpoiler(!isSpoiler)}
-            />
-            Mark as Spoiler
-          </label>
-          <button onClick={sendPost}>Send</button>
-        </div>
-      )}
+      </ul>
     </div>
   );
 }
