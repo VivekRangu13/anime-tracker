@@ -1,13 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import {
-  collection,
-  addDoc,
-  doc,
-  deleteDoc,
-  updateDoc,
-  onSnapshot
-} from 'firebase/firestore';
-import { db, auth } from '../firebase';
 import Comments from '../components/Comments';
 import './WatchlistPage.css';
 
@@ -23,22 +14,6 @@ export default function WatchlistPage() {
   const [genreFilter, setGenreFilter] = useState('');
   const [languageFilter, setLanguageFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
-
-  const user = auth.currentUser;
-
-  useEffect(() => {
-    if (!user) return;
-
-    localStorage.setItem('uid', user.uid);
-
-    const watchlistRef = collection(db, 'users', user.uid, 'watchlist');
-    const unsub = onSnapshot(watchlistRef, (snapshot) => {
-      const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setShows(list);
-    });
-
-    return () => unsub();
-  }, [user]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -57,67 +32,51 @@ export default function WatchlistPage() {
     return () => clearInterval(interval);
   }, [shows]);
 
-  const addShow = async () => {
+  const addShow = () => {
     if (!title.trim()) {
       alert("Please enter a show title.");
       return;
     }
-    if (!user) {
-      alert("User not authenticated.");
-      return;
-    }
-    try {
-      await addDoc(collection(db, 'users', user.uid, 'watchlist'), {
-        title,
-        status,
-        episodesWatched: 0,
-        totalEpisodes: 12,
-        reminder: '',
-        genre,
-        language,
-        year
-      });
-      setTitle('');
-      setGenre('');
-      setLanguage('');
-      setYear('');
-    } catch (error) {
-      console.error("Failed to add show:", error);
-      alert("Failed to add show. Please try again.");
-    }
+
+    const newShow = {
+      id: Date.now().toString(),
+      title,
+      status,
+      episodesWatched: 0,
+      totalEpisodes: 12,
+      reminder: '',
+      genre,
+      language,
+      year
+    };
+
+    setShows(prev => [...prev, newShow]);
+    setTitle('');
+    setGenre('');
+    setLanguage('');
+    setYear('');
   };
 
-  const deleteShow = async (id) => {
-    if (!user) return;
-    try {
-      await deleteDoc(doc(db, 'users', user.uid, 'watchlist', id));
-    } catch (error) {
-      console.error("Failed to delete show:", error);
-      alert("Failed to delete show. Please try again.");
-    }
+  const deleteShow = (id) => {
+    setShows(prev => prev.filter(show => show.id !== id));
   };
 
-  const updateProgress = async (id, episodes) => {
-    if (!user) return;
+  const updateProgress = (id, episodes) => {
     if (episodes < 0) return;
-    try {
-      const showRef = doc(db, 'users', user.uid, 'watchlist', id);
-      await updateDoc(showRef, { episodesWatched: episodes });
-    } catch (error) {
-      console.error("Failed to update episodes:", error);
-      alert("Failed to update episodes. Please try again.");
-    }
+
+    setShows(prev =>
+      prev.map(show =>
+        show.id === id ? { ...show, episodesWatched: episodes } : show
+      )
+    );
   };
 
-  const updateReminder = async (id, reminderValue) => {
-    if (!user) return;
-    try {
-      const showRef = doc(db, 'users', user.uid, 'watchlist', id);
-      await updateDoc(showRef, { reminder: reminderValue });
-    } catch (error) {
-      console.error("Failed to update reminder:", error);
-      alert("Failed to update reminder. Please try again.");
-    }
+  const updateReminder = (id, reminderValue) => {
+    setShows(prev =>
+      prev.map(show =>
+        show.id === id ? { ...show, reminder: reminderValue } : show
+      )
+    );
   };
 
   const filteredShows = shows.filter(show =>
@@ -214,7 +173,6 @@ export default function WatchlistPage() {
             <button onClick={() => updateProgress(show.id, Math.max(0, (show.episodesWatched ?? 0) - 1))}>➖</button>
             <button onClick={() => deleteShow(show.id)} className="delete-btn">Delete</button>
 
-            {/* Reminder Input */}
             <div style={{ marginTop: '10px' }}>
               <label>Reminder (YYYY-MM-DD HH:MM): </label>
               <input
@@ -224,12 +182,7 @@ export default function WatchlistPage() {
               />
             </div>
 
-            {/* View Details Link */}
-            <div style={{ marginTop: '10px' }}>
-              <a href={`/show/${show.id}`} style={{ color: 'blue' }}>📄 View Details</a>
-            </div>
-
-            {/* Comments Section */}
+            {/* Comments Section (optional demo) */}
             <div style={{ marginTop: '15px' }}>
               <Comments showId={show.id} />
             </div>
@@ -237,14 +190,11 @@ export default function WatchlistPage() {
         ))}
       </div>
 
-      {/* Share Button */}
+      {/* Share Button (for demo only) */}
       <div>
         <button
           onClick={() => {
-            const uid = localStorage.getItem('uid');
-            const shareLink = `${window.location.origin}/shared/${uid}`;
-            navigator.clipboard.writeText(shareLink);
-            alert('🔗 Shareable link copied to clipboard!');
+            alert('🔗 This is a demo version. No real share link created.');
           }}
           className="share-btn"
         >

@@ -1,30 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 
 const recommended = [
   {
-    id: 1,
+    id: 16498,
     title: "Attack on Titan",
     source: "Shonen Club",
     genre: "Action",
-    image: "https://cdn.myanimelist.net/images/anime/10/47347.jpg"
+    image: "https://cdn.myanimelist.net/images/anime/10/47347.jpg",
+    url: "https://myanimelist.net/anime/16498/Shingeki_no_Kyojin"
   },
   {
-    id: 2,
+    id: 32281,
     title: "Your Name",
     source: "Romance Club",
     genre: "Romance",
-    image: "https://cdn.myanimelist.net/images/anime/5/87048.jpg"
+    image: "https://cdn.myanimelist.net/images/anime/5/87048.jpg",
+    url: "https://myanimelist.net/anime/32281/Kimi_no_Na_wa"
   },
   {
-    id: 3,
+    id: 1535,
     title: "Death Note",
     source: "Thriller Club",
     genre: "Mystery",
-    image: "https://cdn.myanimelist.net/images/anime/9/9453.jpg"
+    image: "https://cdn.myanimelist.net/images/anime/9/9453.jpg",
+    url: "https://myanimelist.net/anime/1535/Death_Note"
   }
 ];
 
@@ -43,10 +46,14 @@ const Home = () => {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      if (!currentUser) {
+        navigate('/login');
+      } else {
+        setUser(currentUser);
+      }
     });
     return () => unsub();
-  }, []);
+  }, [navigate]);
 
   const searchAnime = async () => {
     if (!queryText.trim() && !selectedGenre) return;
@@ -68,8 +75,13 @@ const Home = () => {
     setLoading(false);
   };
 
-  const handleAnimeClick = (id) => {
-    navigate(`/anime/${id}`);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -79,7 +91,7 @@ const Home = () => {
           <h1>🎌 Welcome to Anime Tracker</h1>
           <p className="greeting">👋 Hello, {user?.displayName || "R V K"}!</p>
         </div>
-        <button className="logout-btn">Logout</button>
+        <button className="logout-btn" onClick={handleLogout}>Logout</button>
       </header>
 
       <section className="recommended">
@@ -89,7 +101,7 @@ const Home = () => {
             <div
               key={anime.id}
               className="anime-card hoverable"
-              onClick={() => handleAnimeClick(anime.id)}
+              onClick={() => window.open(anime.url, "_blank")}
             >
               <img src={anime.image} alt={anime.title} />
               <h3>{anime.title}</h3>
@@ -129,7 +141,7 @@ const Home = () => {
               <div
                 key={anime.mal_id}
                 className="anime-card"
-                onClick={() => handleAnimeClick(anime.mal_id)}
+                onClick={() => window.open(anime.url, "_blank")}
               >
                 <img src={anime.images.jpg.image_url} alt={anime.title} />
                 <h3>{anime.title}</h3>

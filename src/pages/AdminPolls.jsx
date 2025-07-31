@@ -3,13 +3,13 @@ import React, { useState } from "react";
 const initialPolls = [
   {
     id: 1,
-    question: "Favorite programming language?",
-    options: ["JavaScript", "Python", "Java", "C#"],
+    question: " What is your Favorite Anime ?",
+    options: ["Naruto", "One Piece", "Shinchan", "SOLO"],
   },
   {
     id: 2,
-    question: "Best season of the year?",
-    options: ["Spring", "Summer", "Fall", "Winter"],
+    question: "Best anime of the year?",
+    options: ["Solo Levelling 2", "Danadan 2", "One Piece NEW"],
   },
 ];
 
